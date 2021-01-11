@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const express = require('express');
 const http = require('http');
 const redis = require('redis');
-const pg = require('pg');
+const { Client, Pool } = require('pg');
 const log = require('npmlog');
 const url = require('url');
 const { WebSocketServer } = require('@clusterws/cws');
@@ -104,13 +104,18 @@ const startWorker = (workerId) => {
 
   if (!!process.env.DB_SSLMODE && process.env.DB_SSLMODE !== 'disable') {
     pgConfigs.development.ssl = true;
-    pgConfigs.production.ssl  = true;
+    pgConfigs.production.ssl = {
+	    rejectUnauthorized: false,
+	    ca: fs.readFileSync('/home/mastodon/.postgresql/root.crt').toString(),
+	    key: fs.readFileSync('/home/mastodon/.postgresql/postgresql.key').toString(),
+	    cert: fs.readFileSync('/home/mastodon/.postgresql//postgresql.crt').toString(),
+    };
   }
 
   const app = express();
   app.set('trusted proxy', process.env.TRUSTED_PROXY_IP || 'loopback,uniquelocal');
-
-  const pgPool = new pg.Pool(Object.assign(pgConfigs[env], dbUrlToConfig(process.env.DATABASE_URL)));
+  console.log(pgConfigs.production);
+  const pgPool = new Pool(Object.assign(pgConfigs[env], dbUrlToConfig(process.env.DATABASE_URL)));
   const server = http.createServer(app);
   const redisNamespace = process.env.REDIS_NAMESPACE || null;
 
