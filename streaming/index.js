@@ -114,7 +114,7 @@ const startWorker = (workerId) => {
 
   const app = express();
   app.set('trusted proxy', process.env.TRUSTED_PROXY_IP || 'loopback,uniquelocal');
-  console.log(pgConfigs.production);
+
   const pgPool = new Pool(Object.assign(pgConfigs[env], dbUrlToConfig(process.env.DATABASE_URL)));
   const server = http.createServer(app);
   const redisNamespace = process.env.REDIS_NAMESPACE || null;
